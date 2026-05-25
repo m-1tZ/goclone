@@ -1,6 +1,6 @@
 package main
 
-import "github.com/goclone-dev/goclone/cmd"
+import "github.com/m-1tZ/goclone/cmd"
 
 func main() {
 	cmd.Execute()

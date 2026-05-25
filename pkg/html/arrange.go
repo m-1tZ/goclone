@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/goclone-dev/goclone/pkg/parser"
+	"github.com/m-1tZ/goclone/pkg/parser"
 )
 
 // LinkRestructure rewrites asset paths in index.html to point at the locally

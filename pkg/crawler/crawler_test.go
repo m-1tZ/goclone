@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/goclone-dev/goclone/pkg/file"
-	"github.com/goclone-dev/goclone/testutils"
+	"github.com/m-1tZ/goclone/pkg/file"
+	"github.com/m-1tZ/goclone/testutils"
 	"github.com/gocolly/colly/v2"
 )
 

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goclone-dev/goclone/pkg/crawler"
-	"github.com/goclone-dev/goclone/pkg/file"
-	"github.com/goclone-dev/goclone/testutils"
+	"github.com/m-1tZ/goclone/pkg/crawler"
+	"github.com/m-1tZ/goclone/pkg/file"
+	"github.com/m-1tZ/goclone/testutils"
 )
 
 // TestArrange verifies that the LinkRestructure function correctly reorganizes the paths

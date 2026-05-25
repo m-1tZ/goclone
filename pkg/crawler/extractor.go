@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goclone-dev/goclone/pkg/parser"
+	"github.com/m-1tZ/goclone/pkg/parser"
 )
 
 // coreExtensions are always fetched regardless of --assets: JS and data files
