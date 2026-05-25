@@ -63,9 +63,6 @@ func GetDomain(validurl string) string {
 		panic(err)
 	}
 
-	// grab the hostname from the string
-	hostname := u.Hostname()
-
-	// hostname
-	return hostname
+	// use Host (not Hostname) to preserve the port when present
+	return u.Host
 }

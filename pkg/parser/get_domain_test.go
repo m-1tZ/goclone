@@ -13,6 +13,8 @@ func TestGetDomain(t *testing.T) {
 		expected string
 	}{
 		{"https://google.com", "google.com"},
+		{"https://target.com:443", "target.com:443"},
+		{"https://target.com:8443/path", "target.com:8443"},
 	}
 	for _, table := range tables {
 		result := GetDomain(table.url)
