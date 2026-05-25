@@ -2,6 +2,7 @@ package html
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -26,9 +27,10 @@ func TestArrange(t *testing.T) {
 	defer os.RemoveAll(projectDirectory)
 
 	// Run crawler and restructuring
-	crawler.Collector(context.Background(), ts.URL, projectDirectory, nil, "", "")
+	client := &http.Client{Transport: http.DefaultTransport}
+	crawler.Collector(context.Background(), ts.URL, projectDirectory, client, nil, "", 1, true)
 
-	if err := LinkRestructure(projectDirectory); err != nil {
+	if err := LinkRestructure(projectDirectory, ts.URL, true); err != nil {
 		t.Fatalf("Error during restructuring: %v", err)
 	}
 

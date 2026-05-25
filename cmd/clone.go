@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
@@ -26,6 +27,8 @@ type CloneOptions struct {
 	Cookies   []string
 	Proxy     string
 	UserAgent string
+	Depth     int
+	Assets    bool // download CSS / fonts / images in addition to JS
 }
 
 // CloneSite clones the site with the specified options
@@ -35,12 +38,29 @@ func CloneSite(ctx context.Context, args []string, opts CloneOptions) error {
 		return err
 	}
 
-	firstProject, err := cloneProjects(ctx, args, jar, opts)
+	client := buildHTTPClient(jar, opts)
+
+	firstProject, err := cloneProjects(ctx, args, jar, client, opts)
 	if err != nil {
 		return err
 	}
 
 	return handlePostCloneActions(ctx, firstProject, opts)
+}
+
+// buildHTTPClient constructs a shared http.Client with TLS skip, proxy, and
+// cookie jar already wired in.  The cancelableTransport is added later in
+// Crawl so that every call site benefits from context cancellation.
+func buildHTTPClient(jar *cookiejar.Jar, opts CloneOptions) *http.Client {
+	t := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
+	}
+	if opts.Proxy != "" {
+		if u, err := url.Parse(opts.Proxy); err == nil {
+			t.Proxy = http.ProxyURL(u)
+		}
+	}
+	return &http.Client{Jar: jar, Transport: t}
 }
 
 func setupCookieJar(args []string, cookies []string) (*cookiejar.Jar, error) {
@@ -78,7 +98,7 @@ func setupCookieJar(args []string, cookies []string) (*cookiejar.Jar, error) {
 	return jar, nil
 }
 
-func cloneProjects(ctx context.Context, args []string, jar *cookiejar.Jar, opts CloneOptions) (string, error) {
+func cloneProjects(ctx context.Context, args []string, jar *cookiejar.Jar, client *http.Client, opts CloneOptions) (string, error) {
 	var firstProject string
 	for _, u := range args {
 		isValid, isValidDomain := parser.ValidateURL(u), parser.ValidateDomain(u)
@@ -98,11 +118,11 @@ func cloneProjects(ctx context.Context, args []string, jar *cookiejar.Jar, opts 
 			firstProject = projectPath
 		}
 
-		if err := crawler.Crawl(ctx, u, projectPath, jar, opts.Proxy, opts.UserAgent); err != nil {
+		if err := crawler.Crawl(ctx, u, projectPath, client, jar, opts.UserAgent, opts.Depth, opts.Assets); err != nil {
 			return "", fmt.Errorf("%q: %w", u, err)
 		}
 
-		if err := html.LinkRestructure(projectPath); err != nil {
+		if err := html.LinkRestructure(projectPath, u, opts.Assets); err != nil {
 			return "", fmt.Errorf("%q: %w", projectPath, err)
 		}
 	}
@@ -111,14 +131,12 @@ func cloneProjects(ctx context.Context, args []string, jar *cookiejar.Jar, opts 
 
 func handlePostCloneActions(ctx context.Context, projectPath string, opts CloneOptions) error {
 	if opts.Serve {
-		// Start the server in a goroutine
 		go func() {
 			if err := server.Serve(projectPath, opts.ServePort); err != nil {
 				fmt.Printf("Error starting server: %v\n", err)
 			}
 		}()
 
-		// Wait a moment to ensure the server is ready
 		time.Sleep(100 * time.Millisecond)
 
 		if opts.Open {
@@ -127,7 +145,6 @@ func handlePostCloneActions(ctx context.Context, projectPath string, opts CloneO
 			}
 		}
 
-		// Wait for context cancellation (Ctrl+C)
 		<-ctx.Done()
 		return nil
 	}
@@ -155,7 +172,6 @@ func openFile(path string) error {
 	return nil
 }
 
-// open opens the specified URL in the default browser of the user.
 func open(url string) *exec.Cmd {
 	var cmd string
 	var args []string
@@ -166,7 +182,7 @@ func open(url string) *exec.Cmd {
 		args = []string{"/c", "start"}
 	case "darwin":
 		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
+	default:
 		cmd = "xdg-open"
 	}
 	args = append(args, url)

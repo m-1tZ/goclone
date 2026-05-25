@@ -17,6 +17,8 @@ var (
 	UserAgent   string
 	ProxyString string
 	Cookies     []string
+	Depth       int
+	Assets      bool
 
 	// Root cmd
 	rootCmd = &cobra.Command{
@@ -45,6 +47,8 @@ var (
 				Cookies:   Cookies,
 				Proxy:     ProxyString,
 				UserAgent: UserAgent,
+				Depth:     Depth,
+				Assets:    Assets,
 			}
 
 			// Otherwise.. clone ahead!
@@ -67,6 +71,8 @@ func Execute() {
 	pf.IntVarP(&ServePort, "servePort", "P", 5000, "Serve port number.")
 	pf.StringVarP(&ProxyString, "proxy_string", "p", "", "Proxy connection string. Support http and socks5 https://pkg.go.dev/github.com/gocolly/colly#Collector.SetProxy")
 	pf.StringVarP(&UserAgent, "user_agent", "u", "", "Custom User Agent")
+	pf.IntVarP(&Depth, "depth", "d", 1, "Maximum crawl depth (1 = main page assets only, 0 = unlimited)")
+	pf.BoolVarP(&Assets, "assets", "a", false, "Also download CSS, fonts, and images (full visual clone)")
 	rootCmd.Flags().StringSliceVarP(&Cookies, "cookie", "C", nil, "Pre-set these cookies")
 
 	// Execute the command :)

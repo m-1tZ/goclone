@@ -18,10 +18,12 @@ func CreateProject(projectName string) string {
 	err := os.MkdirAll(projectPath, 0777)
 	check(err)
 
-	// create CSS/JS/Image directories
+	// create CSS/JS/Image/Font/Data directories
 	createCSS(projectPath)
 	createJS(projectPath)
 	createIMG(projectPath)
+	createFonts(projectPath)
+	createData(projectPath)
 
 	// main inedx file
 	_, err = os.Create(projectPath + "/" + "index.html")
@@ -53,6 +55,16 @@ func createJS(path string) {
 // createIMG create a image directory in the current path
 func createIMG(path string) {
 	err := os.MkdirAll(path+"/"+"imgs", 0777)
+	check(err)
+}
+
+func createFonts(path string) {
+	err := os.MkdirAll(path+"/"+"fonts", 0777)
+	check(err)
+}
+
+func createData(path string) {
+	err := os.MkdirAll(path+"/"+"data", 0777)
 	check(err)
 }
 

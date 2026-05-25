@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"testing"
 
@@ -12,8 +13,9 @@ import (
 
 var TsUrl string
 
-func collectAndGetFileContent(tsUrl, projectDirectory, relativeRoute string) string {
-	Collector(context.Background(), tsUrl, projectDirectory, nil, "", "")
+func collectAndGetFileContent(tsUrl, projectDirectory, relativeRoute string, assets bool) string {
+	client := &http.Client{Transport: http.DefaultTransport}
+	Collector(context.Background(), tsUrl, projectDirectory, client, nil, "", 1, assets)
 	route := projectDirectory + relativeRoute
 	fileContent := file.GetFileContent(route)
 	return fileContent
@@ -22,7 +24,7 @@ func collectAndGetFileContent(tsUrl, projectDirectory, relativeRoute string) str
 var collectorTests = map[string]func(*testing.T){
 	"indexDownload": func(t *testing.T) {
 		projectDirectory := file.CreateProject("test")
-		collectorContent := collectAndGetFileContent(TsUrl+"/hello", projectDirectory, "/index.html")
+		collectorContent := collectAndGetFileContent(TsUrl+"/hello", projectDirectory, "/index.html", false)
 
 		if collectorContent != testutils.CrawlerHelloContent {
 			t.Fatalf("Expect \"%s\", but got: %s", testutils.CrawlerHelloContent, collectorContent)
@@ -31,7 +33,7 @@ var collectorTests = map[string]func(*testing.T){
 	},
 	"cssDownload": func(t *testing.T) {
 		projectDirectory := file.CreateProject("test")
-		cssFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/css/index.css")
+		cssFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/css/index.css", true)
 		if cssFileContent != testutils.CrawlerCssContent {
 			t.Fatalf("Expect \"%s\", but got: %s", testutils.CrawlerCssContent, cssFileContent)
 		}
@@ -39,7 +41,7 @@ var collectorTests = map[string]func(*testing.T){
 	},
 	"jsDownload": func(t *testing.T) {
 		projectDirectory := file.CreateProject("test")
-		jsFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/js/index.js")
+		jsFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/js/index.js", false)
 
 		if jsFileContent != testutils.CrawlerJsContent {
 			t.Fatalf("Expect \"%s\", but got: %s", testutils.CrawlerJsContent, jsFileContent)
@@ -48,7 +50,7 @@ var collectorTests = map[string]func(*testing.T){
 	},
 	"imgDownload": func(t *testing.T) {
 		projectDirectory := file.CreateProject("test")
-		imgFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/imgs/image.png")
+		imgFileContent := collectAndGetFileContent(TsUrl, projectDirectory, "/imgs/image.png", true)
 		if imgFileContent != testutils.CrawlerImgContent {
 			t.Fatalf("Expect \"%s\", but got: %s", testutils.CrawlerImgContent, imgFileContent)
 		}
